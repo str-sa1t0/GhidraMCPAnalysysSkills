@@ -1,6 +1,6 @@
 # MalAnalysysSkills
 
-Windowsマルウェア解析用の日本語Codex Skillsです。各Skillディレクトリを `~/.codex/skills/` へ配置してください。
+Windowsマルウェア解析用の日本語Codex Skillsです。使用するSkillディレクトリを `~/.codex/skills/` へ配置してください。
 
 ## 基本的な使い方
 
@@ -10,12 +10,11 @@ Windowsマルウェア解析用の日本語Codex Skillsです。各Skillディ�
 $malware-re-analysis-ja FlareVM上の <対象ファイル> を解析し、最終レポートまで作成してください。
 ```
 
-補助Skillsとして、復号・静的再構成に `$malware-static-reconstruction-ja`、最終レポートの証拠監査に `$malware-evidence-auditor-ja` を使用します。
+復号・静的再構成はmain Skillに含まれます。`$malware-evidence-auditor-ja` が利用可能なら、最終レポートの証拠監査にも使用します。
 
-補助Skillは単独でも利用できますが、レポート出力の過程で実行されます。
+Evidence Auditorは単独でも利用できます。
 
 ```text
-$malware-static-reconstruction-ja <抽出byte・変換式> を静的に再構成してください。
 $malware-evidence-auditor-ja <解析レポート> を監査してください。
 ```
 
