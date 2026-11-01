@@ -40,9 +40,9 @@ manifest が名指しする artifact・script file の hash 再計算と段グ�
 python3 malware-evidence-auditor-ja/scripts/verify_reconstruction_ledger.py manifest.json [--json] [--require-artifacts] [--sample PATH]
 ```
 
-## 表契約
+## 表の仕様
 
-レポート内の表は `malware-evidence-auditor-ja/references/table-contract.md` の契約に従います。
+レポート内の表は `malware-evidence-auditor-ja/references/table-contract.md` の仕様に従います。
 
 - 正規Evidence Tableは `Finding | Evidence class | Program | Function/address | Evidence | Confidence` の順序で6列を並べる。`Analysis state` は末尾7列目だけ。
 - 技法別表（`stage-ledger`、`decode-blocks`、`image-map`、`module-map`、`ordinal-import`、`module-contract`、`ioc-summary`、`artifact-chain`、`api-hash`）はヘッダ直前に `<!-- table-type: 型名 -->` を宣言します。宣言は検査免除になりません。`Evidence` 列は観測内容、class を置く列は `Evidence class` です。

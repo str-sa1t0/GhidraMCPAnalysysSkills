@@ -1,10 +1,10 @@
-# Evidence validator の表契約・再帰解析設計
+# Evidence validator の表の仕様と再帰解析の設計
 
-状態: 設計案。2026-11-01 に `malware-evidence-auditor-ja/scripts/validate_evidence.py` と両 Skill の文書・tests へ実装済み。実行時の表契約の正本は `malware-evidence-auditor-ja/references/table-contract.md` であり、本書は設計経緯の記録として保持する。両者が食い違う場合は正本と script を優先し、本書を更新する。
+状態: 設計案。2026-11-01 に `malware-evidence-auditor-ja/scripts/validate_evidence.py` と両 Skill の文書・tests へ実装済み。実行時に使う表の仕様は `malware-evidence-auditor-ja/references/table-contract.md` を正本とし、本書は設計経緯の記録として保持する。両者が食い違う場合は正本と script を優先し、本書を更新する。
 
-追記（2026-11-01）: 別設計「証拠表契約・再構成台帳・アドレス契約・IoC/監査」の残項目を同日に実装した。`ioc-summary` は Origin（`HOST_DERIVED` 表記、`EXTERNAL` / `UNKNOWN` 追加）と Usage の二軸、`artifact-chain` の class 列は `Evidence class`、`module-map` / `decode-blocks` 型、`ADDRESS_CONVENTION` ブロック、defang 検査、独立再検証 `verify_reconstruction_ledger.py` を追加した。本書の第5節にある旧列名・旧表記は正本（table-contract.md）が優先する。
+追記（2026-11-01）: 別設計「証拠表の仕様・再構成台帳・アドレス規約・IoC/監査」の残項目を同日に実装した。`ioc-summary` は Origin（`HOST_DERIVED` 表記、`EXTERNAL` / `UNKNOWN` 追加）と Usage の二軸、`artifact-chain` の class 列は `Evidence class`、`module-map` / `decode-blocks` 型、`ADDRESS_CONVENTION` ブロック、defang 検査、独立再検証 `verify_reconstruction_ledger.py` を追加した。本書の第5節にある旧列名・旧表記は正本（table-contract.md）が優先する。
 
-対象は `malware-evidence-auditor-ja/scripts/validate_evidence.py` と、その契約を使う両 Skill の文書・tests。最初に表の識別と再帰解析を実装し、同じ枠組みに技法別検査を追加する。本書の追加だけでは、既存 Skill の規則・CLI・検査結果を変更しない。
+対象は `malware-evidence-auditor-ja/scripts/validate_evidence.py` と、その仕様を参照する両 Skill の文書・tests。最初に表の識別と再帰解析を実装し、同じ枠組みに技法別検査を追加する。本書の追加だけでは、既存 Skill の規則・CLI・検査結果を変更しない。
 
 ## 1. 成立させること
 
@@ -71,7 +71,7 @@ Markdown のコードブロックは、宣言なしなら `fragment`。完全な
 
 通常の Markdown では fence 内はリテラルである。本設計の再帰解析は、取り出したリテラルを明示的に別文書として解析する追加処理であり、親の fence 判定を変更しない。内側の短い fence を含める場合、外側を長い fence にする。
 
-閉じていない fence は、構造上は scope 末尾までブロックとして扱い、レポート契約上の `FENCE_UNCLOSED` ERROR を付ける。残りの内容を親の本文に戻さない。4スペース等のインデントコードも本文から分離し、言語未指定ブロックとして後述の検出に渡す。
+閉じていない fence は、構造上は scope 末尾までブロックとして扱い、レポートの記述規則に従って `FENCE_UNCLOSED` ERROR を付ける。残りの内容を親の本文に戻さない。4スペース等のインデントコードも本文から分離し、言語未指定ブロックとして後述の検出に渡す。
 
 引用・リスト内の一般表は元の scope に属する。コードブロック境界だけが子 scope を作る。非対応 container を読み飛ばす実装は完了扱いにしない。
 
@@ -103,7 +103,7 @@ Python は [ast.parse](https://docs.python.org/3/library/ast.html#ast.parse) だ
 
 上限到達は `PARSE_LIMIT_EXCEEDED` ERROR。該当部分を `truncated` とし、ほかの独立範囲は可能なら検査を継続する。全体を PASS にしない。深さ・ブロック数・投入 byte 数は coverage と共に出力し、停止位置を元ファイルへ対応づける。
 
-## 4. 表の識別契約
+## 4. 表の識別規則
 
 ### 4.1 宣言の結合
 
@@ -146,7 +146,7 @@ escape 済み pipe と inline code 内の pipe の分離抑止は、現行 tests
 
 ## 5. 型レジストリ
 
-必須列は空欄不可。ただし正規表の任意 Analysis state セルは空欄可。列名・列挙値に別名を追加する場合は契約と tests を同時変更する。`UNKNOWN` は正規 Evidence class の一つであり、hash・数値・参照の代わりには使えない。
+必須列は空欄不可。ただし正規表の任意 Analysis state セルは空欄可。列名・列挙値に別名を追加する場合は仕様書と tests を同時変更する。`UNKNOWN` は正規 Evidence class の一つであり、hash・数値・参照の代わりには使えない。
 
 | Type | 必須列 | 任意列 | 主な検査 |
 |---|---|---|---|
@@ -239,7 +239,7 @@ source + line map
 
 最初は現行 script 内の関数・データ構造で分離し、独立した利用実態のない共通 framework は追加しない。parser 選定では、raw header/区切り行の取得、container、未閉鎖 fence、source map の受け渡しを必須条件にする。レンダリング済み HTML だけから検査しない。
 
-実行時の表契約の正本は auditor の `references/table-contract.md` に置く。実装時に本書の確定部分を移し、両方を独立に更新する正本にはしない。re-analysis は単独配置に必要な最小契約を保持し、他 Skill へのリンクだけに依存しない。リポジトリの tests で両 Skill の見本ヘッダ・列挙値を照合する。
+実行時に使う表の仕様は auditor の `references/table-contract.md` を正本とする。実装時に本書の確定部分を移し、両方を独立に更新する正本にはしない。re-analysis は単独配置に必要な仕様の要点を保持し、他 Skill へのリンクだけに依存しない。リポジトリの tests で両 Skill の見本ヘッダ・列挙値を照合する。
 
 ## 8. 例: 引用レポートを再帰解析する
 
@@ -304,6 +304,6 @@ example = "| Finding | Evidence class |"
 2. 宣言と表レジストリを接続し、canonical と既存 artifact-chain を検査する。
 3. ID/anchor と技法別の行検査を追加する。
 4. manifest v2 と ledger の横断検査を接続する。未接続の間は未検査WARNINGを残す。
-5. 両 Skill の文書を同じ契約へ移し、既存レポートの移行差分を確認する。
+5. 両 Skill の文書を同じ仕様に合わせ、既存レポートの移行差分を確認する。
 
 各段の機能と tests を同時に変更する。未実装の登録型を黙って受理しない。部分実装時に現れる未実装型は `TABLE_VALIDATOR_UNAVAILABLE` ERROR として、coverageにも記録する。最終完了条件は、受け入れテスト、利用可能な実レポート回帰、両 Skill の文書整合、および未検査範囲の明示である。構造検査の完了を、解析結果の真実性の保証にはしない。
