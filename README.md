@@ -52,7 +52,19 @@ python3 malware-evidence-auditor-ja/scripts/verify_reconstruction_ledger.py mani
 
 設計経緯は `docs/evidence-validation-design.md` にあります。
 
-## テスト
+## 中断からの再開・証拠付きの図
+
+操作・失敗・保留した解釈は最終報告と分けて記録し、再開時に検体・Program・解析設定・保存証拠を照合します。[作業記録](malware-re-analysis-ja/references/analysis-session.md) と [デコンパイル異常時の手順](malware-re-analysis-ja/references/decompiler-recovery.md) に開始条件、代替手順、終了条件があります。
+
+作業記録をスクリプトで照合する場合は、[記録の仕様](malware-evidence-auditor-ja/references/analysis-session-contract.md) に従って `session.json` を作成し、既存のFindingと再構成台帳に対応づけます。
+
+```text
+python3 malware-evidence-auditor-ja/scripts/verify_analysis_session.py session.json --evidence-root case/evidence --current current-identity.json --sample sample.bin --report REPORT.md
+```
+
+`--mermaid` を追加すると、検査でERRORがなかった場合に、証拠ID・命令位置・条件を付けた制御フロー図（CFG）を標準出力へ出します。静的に導出した遷移は実線、実行時に観測した遷移は太線、未解決の候補は破線で示します。再開できるかどうかの判定は、入力された識別情報・解析設定と保存ファイルの照合に限られます。実際に開かれているProgramとの一致や、命令の解釈の正しさを保証するものではありません。
+
+## テスト実行
 
 ```text
 python3 -m unittest discover -s malware-evidence-auditor-ja/tests
