@@ -20,6 +20,16 @@ $malware-re-analysis-ja このコード断片から生成される宛先や設�
 
 探索中の仮説・失敗は作業メモへ、採用した結果は既存の Finding・IoC 表・必要な台帳へ記録します。以下の validator は構造・構文を検査し、コードからの値の導出や用途の判断は解析担当と監査担当が行います。
 
+## 復号・エミュレーション・文法抽出
+
+以下は検体をホストで起動せず、静的に取得したバイト列だけを扱う補助スクリプトです。
+
+- `scripts/decode_api_names.py`: 符号化された API/DLL 名リテラルの復号と、ROR13-add / CRC32 / djb2 / FNV-1a によるハッシュ候補照合（[API hash解析](malware-re-analysis-ja/references/api-hash-analysis.md)）
+- `scripts/offline_emulate.py`: 副作用のないコード範囲を Unicorn 上で API スタブ付き・上限付きでエミュレートし、初期化鍵・設定を復元（[オフライン・エミュレーション](malware-re-analysis-ja/references/offline-emulation.md)）。結果は `OBSERVED_STATIC` であり、検体の起動ではない
+- `scripts/request_grammar.py`: 乱数から組み立てられる URI/Cookie の生成文法を出力（[文法抽出](malware-re-analysis-ja/references/request-grammar-analysis.md)）。具体値は `NOT_OBSERVED_RUNTIME` のまま扱う
+
+いずれもネットワークへ接続せず、検体を実行しません。エミュレーションは命令数・時間・ヒープの上限を必須とし、実 API へ到達させません。
+
 Evidence Auditorは単独でも利用できます。
 
 ```text

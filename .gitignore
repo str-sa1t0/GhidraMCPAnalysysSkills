@@ -1,0 +1,5 @@
+# ローカル作業ディレクトリ（commit / push しない）
+work/
+reports/
+__pycache__/
+*.pyc
