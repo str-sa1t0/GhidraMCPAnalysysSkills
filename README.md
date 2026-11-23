@@ -36,10 +36,13 @@ Evidence Auditorは単独でも利用できます。
 $malware-evidence-auditor-ja <解析レポート> を監査してください。
 ```
 
+補助スクリプトはリポジトリのルートから `uv run スクリプト.py` で実行します。
+環境の準備は [テスト実行](#テスト実行) を参照してください。
+
 構造検査だけをコマンドラインで実行する場合:
 
 ```text
-python3 malware-evidence-auditor-ja/scripts/validate_evidence.py REPORT.md [--json] [--provenance manifest.json ...]
+uv run malware-evidence-auditor-ja/scripts/validate_evidence.py REPORT.md [--json] [--provenance manifest.json ...]
 ```
 
 終了コードは ERROR あり=1、読み取り・引数エラー=2、それ以外=0 です。`PASS` は schema・参照検査の通過だけを意味し、解析結果の真実性や埋め込みコードの全言語対応は含意しません。
@@ -47,7 +50,7 @@ python3 malware-evidence-auditor-ja/scripts/validate_evidence.py REPORT.md [--js
 manifest が名指しする artifact・script file の hash 再計算と段グラフの再導出は、writer を import しない独立スクリプトで行います。
 
 ```text
-python3 malware-evidence-auditor-ja/scripts/verify_reconstruction_ledger.py manifest.json [--json] [--require-artifacts] [--sample PATH]
+uv run malware-evidence-auditor-ja/scripts/verify_reconstruction_ledger.py manifest.json [--json] [--require-artifacts] [--sample PATH]
 ```
 
 ## 表の仕様
@@ -69,16 +72,54 @@ python3 malware-evidence-auditor-ja/scripts/verify_reconstruction_ledger.py mani
 作業記録をスクリプトで照合する場合は、[記録の仕様](malware-evidence-auditor-ja/references/analysis-session-contract.md) に従って `session.json` を作成し、既存のFindingと再構成台帳に対応づけます。
 
 ```text
-python3 malware-evidence-auditor-ja/scripts/verify_analysis_session.py session.json --evidence-root case/evidence --current current-identity.json --sample sample.bin --report REPORT.md
+uv run malware-evidence-auditor-ja/scripts/verify_analysis_session.py session.json --evidence-root case/evidence --current current-identity.json --sample sample.bin --report REPORT.md
 ```
 
 `--mermaid` を追加すると、検査でERRORがなかった場合に、証拠ID・命令位置・条件を付けた制御フロー図（CFG）を標準出力へ出します。静的に導出した遷移は実線、実行時に観測した遷移は太線、未解決の候補は破線で示します。再開できるかどうかの判定は、入力された識別情報・解析設定と保存ファイルの照合に限られます。実際に開かれているProgramとの一致や、命令の解釈の正しさを保証するものではありません。
 
 ## テスト実行
 
-```text
-python3 -m unittest discover -s malware-evidence-auditor-ja/tests
-python3 -m unittest discover -s malware-re-analysis-ja/tests
+テスト環境は [uv](https://docs.astral.sh/uv/) で管理し、Python 3.13 を使用します。
+以下の手順で、補助スクリプトとテストに共通の環境を用意します。
+コマンドはすべてリポジトリのルートで実行してください。
+
+1. uv が利用できることを確認します。未導入の場合は [公式のインストール手順](https://docs.astral.sh/uv/getting-started/installation/) に従って導入してください。
+
+   ```sh
+   uv --version
+   ```
+
+2. ロックファイルに従ってテスト環境を作成します。
+
+   ```sh
+   uv sync
+   ```
+
+   `.python-version` と `pyproject.toml` により Python 3.13 を選択し、`.venv` を作成します。
+   Python 3.13 が未導入の場合は uv が自動でダウンロードします。
+   `uv.lock` に固定された開発用依存も導入されるため、Unicorn を使うエミュレーションテストも実行できます。
+
+3. テストに使う Python のバージョンを確認します。`Python 3.13.x` と表示されることを確認してください。
+
+   ```sh
+   uv run python --version
+   ```
+
+4. 両方の Skill のテストを実行します。
+
+   ```sh
+   uv run -m unittest discover -s malware-evidence-auditor-ja/tests
+   uv run -m unittest discover -s malware-re-analysis-ja/tests
+   ```
+
+   両方とも `OK` と表示されることを確認してください。
+   動作確認時は Python 3.13.7 / Unicorn 2.1.4 で、監査側153件・解析側56件の計209件がスキップなしで成功しました。
+
+以降も `uv run` で実行すると、`.venv` 内の Python と依存関係が使用されます。
+仮想環境を手動で activate する必要はありません。リポジトリ更新後は、次のコマンドで依存関係を同期してからテストを実行してください。
+
+```sh
+uv sync
 ```
 
 検体固有のIoCはtestsやSkillに取り込まず、手作りの最小fixtureだけを使います。
